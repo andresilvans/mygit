@@ -1,0 +1,405 @@
+ 日期类是C++学习过程中比较重要的一个类，这次写的日期类主要用来模拟计算（1）日期的加减days（2）两个日期之间相隔的天数（3）判断两个日期时间是否相等（4）比较两个日期之间的大小
+
+        日期类实现起来并不复杂，，主要难点在于保证日期的有效合理性（比如需要解决每个月的天数不相等的问题，给某一天加上或者减去一个天数之后保证得到的天数是在当月的合理值之内的）
+代码如下：
+
+#define _CRT_SECURE_NO_WARNINGS 1
+//一三五七八十十二    31
+//二四六九十一        30
+//二月 平年28  闰年29
+#include <iostream> 
+#include <stdlib.h>
+#include <assert.h>
+using namespace std;
+class Date
+{
+public:
+      Date(int year = 2017, int month = 9, int day = 23)
+            :_year(year)
+            ,_month(month)
+            ,_day(day)
+      {}
+      
+      Date(const Date &d)
+            :_year(d._year)
+            ,_month(d._month)
+            ,_day(d._day)
+      {}
+      //赋值运算符重载
+      Date& operator=(const Date &d)
+      {
+            if(this != &d)
+            {
+                  _year = d._year;
+                  _month = d._month;
+                  _day = d._day;
+            }
+            return *this;
+      }
+      void Display()
+      {
+            cout<<_year<<" "<<_month<<" "<<_day<<endl;
+      }
+      // 前置++
+    Date& operator++();
+    // 后置++
+      Date operator++(int);
+    Date& operator--();
+    Date operator--(int);
+    //days天之后的日期
+    Date operator+(int days);
+    // days天之前的日期
+    Date operator-(int days);
+    // 两个日期之间的距离
+    int operator-(const Date& d);
+    bool operator==(const Date& d);
+    bool operator!=(const Date& d);
+    bool operator>(const Date& d);
+    bool operator<(const Date& d); 
+private:
+      int _year;
+      int _month;
+      int _day;
+};
+//获得天数
+int GetDays(int _year, int _month)
+{
+      switch(_month)
+      {
+      case 1:
+      case 3:
+      case 5:
+      case 7:
+      case 8:
+      case 10:
+      case 12:
+            return 31;
+            break;
+      case 4:
+      case 6:
+      case 9:
+      case 11:
+            return 30;
+      case 2:
+            if((_year % 4== 0 && _year % 100!= 0)||(_year % 400 == 0))//闰年
+            {
+                  return 29;
+            }
+            else
+            {
+                  return 28;
+            }
+            break;
+      default:
+            break;
+      }
+}
+//前置++
+Date& Date::operator++()
+{
+      switch(_month)
+      {
+            case 1:
+        case 3:
+            case 5:
+            case 7:
+            case 8:
+            case 10:
+                  assert(_day <= 31);
+                  if(_day == 31)
+                  {
+                        _month += 1;
+                        _day = 1;
+                  }
+                  else
+                  {
+                        _day -= 1;
+                  }
+                  break;
+            case 12:
+                  assert(_day <= 31);
+                  if(_day == 31)
+                  {
+                        _year += 1;
+                        _month = 1;
+                        _day = 1;
+                  }
+                  else
+                  {
+                        _day += 1;
+                  }
+                  break;
+            case 4:
+            case 6:
+            case 9:
+            case 11:
+                  assert(_day <= 30);
+                  if(_day == 30)
+                  {
+                        _year += 1;
+                        _day = 1;
+                  }
+                  else
+                  {
+                        _day += 1;
+                  }
+                  break;
+            case 2:           //判断平年还是闰年
+                  if((_year % 4== 0 && _year %100 != 0)||(_year % 400 == 0))//闰年
+                  {
+                        assert(_day <= 29);
+                        if(_day == 29)
+                        {
+                              _month += 1;
+                              _day = 1;
+                        }
+                        else
+                        {
+                              _day += 1;
+                        }
+                  }
+                  else
+                  {
+                        assert(_day == 28);
+                        if(_day == 28)
+                        {
+                              _month += 1;
+                              _day = 1;
+                        }
+                        else
+                        {
+                              _day += 1;
+                        }
+                  }
+                  break;
+      }
+      return *this;
+}
+//后置++
+Date Date::operator++(int)
+{
+      Date temp(*this);
+      temp._day += 1l;
+      return temp;
+}
+//前置--
+Date& Date::operator--()
+{
+      switch(_month)
+      {
+                  case 1:
+            assert(_day <= 31);
+            if(_day == 1)
+            {
+                  _year -= 1;
+                  _month = 12;
+                  _day = 31;
+            }
+            else
+            {
+                  _day -= 1;
+            }
+            break;
+      case 5:
+      case 7:
+      case 8:
+      case 10:
+      case 12:
+            assert(_day <= 31);
+            if(_day == 1)
+            {
+                  _month -= 1;
+                  _day = 30;
+            }
+            else
+            {
+                  _day -= 1;
+            }
+            break;
+      case 4:
+      case 6:
+      case 9:
+      case 11:
+            assert(_day <= 30);
+            if(_day == 1)
+            {
+                  _month -= 1;
+                  _day = 31;
+            }
+            else
+            {
+                  _day -= 1;
+            }
+            break;
+      case 3:
+            assert(_day <= 31);
+            if((_year % 4== 0 && _year % 100!= 0)||(_year % 400 == 0))//闰年
+            {
+                  if(_day == 1)
+                  {
+                        _month -= 1;
+                        _day = 29;
+                  }
+                  else
+                  {
+                        _day -= 1;
+                  }
+            }
+            else
+            {
+                  if(_day == 1)
+                  {
+                        _month -= 1;
+                        _day = 28;
+                  }
+                  else
+                  {
+                        _day -= 1;
+                  }
+            }
+            break;
+      case 2:
+            if(_day == 1)
+            {
+                  _month -= 1;
+                  _day = 31;
+            }
+            else
+            {
+                  _day -= 1;
+            }
+            break;
+      }
+      return *this;
+}
+//后置--
+Date Date::operator--(int)
+{
+      Date temp(*this);
+      temp._day -= 1l;
+      return temp;
+}
+//days天之后的日期
+Date Date::operator+(int days)
+{
+      if(days < 0)
+      {
+            return *this - (-days);
+      }
+      _day += days;
+      while(_day > GetDays(_year, _month))
+      {
+            _day = _day - GetDays(_year, _month);
+            ++_month;
+            if(_month > 12)
+            {
+                  ++_year;
+                  _month = 1;
+            }
+      }
+      return *this;
+}
+// days天之前的日期
+Date Date::operator-(int days)
+{
+      if(days < 0)
+      {
+            return *this + (-days);
+      }
+      _day -= days;
+      while(_day < 0)
+      {
+            --_month;
+            if(--_month == 0)
+            {
+                  --_year;
+                  _month = 12;
+            }
+            _day = GetDays(_year, _month) + days;
+      }
+      return *this;
+}
+// 两个日期之间的距离
+int Date::operator-(const Date& d)
+{
+      int count = 0;
+      Date maxdate(*this);    //大日期
+      Date mindate(d);    //小日期
+      if(maxdate < mindate)
+      {
+            maxdate = mindate;
+            mindate = *this;
+      }
+      if(maxdate > mindate)
+      {
+            maxdate = mindate + 1;
+            ++count;
+      }
+      return count;
+}
+//判断两日期相等
+bool Date::operator==(const Date& d)
+{
+      if((_year == d._year)&&(_month == d._month)&&(_day == d._day))
+      {
+            return true;
+      }
+      return false;
+}
+//判断两日期不相等
+bool Date::operator!=(const Date& d)
+{
+      if((_year != d._year)||(_month != d._month)||(_day != d._day))
+      {
+            return true;
+      }
+      return false;
+}
+//比较两日期大小
+bool Date::operator>(const Date& d)
+{
+      if((_year > d._year)||((_year == d._year)&&(_month > d._month))||((_year == d._year)&&(_month == d._month)&&(_day > d._day)))
+      {
+            return true;
+      }
+      return false;
+}
+bool Date::operator<(const Date& d)
+{
+      if((_year < d._year)||((_year == d._year)&&(_month < d._month))||((_year == d._year)&&(_month == d._month)&&(_day < d._day)))
+      {
+            return true;
+      }
+      return false;
+}
+//测试
+int main()
+{
+      Date d1;
+    Date d2(2018, 3,2);
+    Date d3(2018, 1, 1);
+    Date d4(2018, 9, 30);
+    Date d5(d1);//调用拷贝构造函数
+    d1.operator+(300);
+      d1.Display();
+    d4.operator++();
+      d4.Display();
+    d3.operator++(1);
+      d3.Display();
+    d3.operator--();
+      d3.Display();
+    d3.operator--(1);
+      d3.Display();
+    d4.operator<(d3);
+      d4.Display();
+    d2.operator=(d2);
+      d2.Display();
+    d2.operator==(d4);
+      d2.Display();
+    d1.operator>(d2);
+      d1.Display();
+    d1.operator!=(d3);
+      d1.Display();
+      system ("pause");
+      return 0;
+}
