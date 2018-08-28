@@ -1,0 +1,307 @@
+#include<math.h>
+#include<iostream>
+using namespace std;
+
+template <class V, class K>
+struct AVLTreeNode
+{
+      //给左右子树,  双亲结点
+      AVLTreeNode<V,K>* _pLeft;
+      AVLTreeNode<V,K>* _pRight;
+      AVLTreeNode<V,K>* _pParent;
+      K _key;        //关键码
+      V _value;
+      int _bf;      //平衡因子
+
+      //构造函数
+      AVLTreeNode(const K& key, const V& value)
+            :_pLeft(NULL)
+            ,_pRight(NULL)
+            ,_pParent(NULL)
+            ,_key(key)
+            ,_value(value)
+            ,_bf(0)
+      {}
+};
+
+
+template <class V, class K>
+class AVLTree
+{
+      typedef AVLTreeNode<V,K> Node;
+      typedef Node* pNode;
+
+public:
+      //构造函数
+      AVLTree()
+            :_pRoot(NULL)
+      {}
+
+      //插入结点
+      bool Insert(const K& key, const V& value)
+      {
+
+            //如果树为空，直接插入
+            if(NULL == _pRoot)
+            //创建新结点,让其等于搜索二叉树的根
+            {
+                  _pRoot = new Node(key, value);
+                  return true;
+            }
+            
+            else
+            {
+                  //树不为空，分情况
+                  pNode pParent = NULL;
+                  pNode pCur = _pRoot;
+
+                  //插入结点
+                  while(pCur)
+                  {
+                        if(key > pCur->_key)
+                        {
+                              pParent = pCur;
+                              pCur = pCur->_pRight;
+                        }
+                        else if(key < pCur->_key)
+                        {
+                              pParent = pCur;
+                              pCur = pCur->_pLeft;
+                        }
+                        else
+                              return true;
+                  }
+
+                  pCur = new Node(key, value);
+                  if(key > pParent->_key)
+                  {
+                        pParent->_pRight = pCur;
+                        pCur->_pParent = pParent;
+                  }
+                  else
+                  {
+                        pParent->_pLeft = pCur;
+                        pCur->_pParent = pParent;
+                  }
+
+                  //调节平衡因子
+                  while(pParent)
+                  {
+                        if(pParent->_pLeft = pCur)
+                        {
+                              pParent->_bf--;
+                        }
+                        else
+                        {
+                              pParent->_bf++;
+                        }
+
+                        if(pParent->_bf == 0)
+                              break;
+                        else if(pParent->_bf == 1 || pParent->_bf == -1)
+                        {
+                              pCur = pParent;
+                              pParent = pCur->_pParent;
+                        }
+                        else
+                        {
+                              if(pParent->_bf == 2)
+                              {
+                                    if(pCur->_bf == 1)
+                                          RotateL(pParent);
+                                    else   //-1
+                                          RotateRL(pParent);
+                              }
+                              else
+                              {
+                                    if(pCur->_bf == -1)
+                                          RotateR(pParent);
+                                    else     //1
+                                          RotateLR(pParent);
+                              }
+                        }
+                        break;
+                  }
+            }
+            return true;
+      }
+
+      void Inorder()
+      {
+            _Inorder(_pRoot);
+            cout<<endl;
+      }
+
+      bool IsBalance()
+      {
+            return _IsBalance(pRoot);
+      }
+
+private:
+      //左单旋---插入较高右子树的右侧
+      void RotateL(pNode pParent)
+      {
+            //先找双亲的右子树,右子树的左子树
+            pNode pSubR = pParent->_pRight;
+            pNode pSubRL = pSubR->_pLeft;
+
+            //先处理pSubRL
+            pParent->_pRight = pSubRL;
+
+            if(pSubRL)
+                  pSubRL->_pParent = pParent;
+
+            pSubR->_pLeft = pParent;
+            pNode ppParent = pSubR->_pParent;
+            pParent->_pParent = pSubR;
+
+            if(pParent == _pRoot)
+            {
+                  pSubR->_pLeft = pParent;
+                  pSubR->_pParent = NULL;
+            }
+
+            //判断pParent为左子树还是右子树
+            else if(ppParent->_pLeft == pParent)
+            {
+                  ppParent->_pLeft = pSubR;
+            }
+
+            else
+            {
+                  ppParent->_pRight = pSubR;
+            }
+            pSubR->_pParent = ppParent;
+
+            //更新平衡因子
+            pParent->_bf = pSubR->_bf = 0;
+      }
+
+      //右单旋---插入较高左子树的左侧
+      void RotateR(pNode pParent)
+      {
+            //先找双亲的左子树，以及左子树的右子树
+            pNode pSubL = pParent->_pLeft;
+            pNode pSubLR = pSubL->_pRight;
+
+            //先处理pSubLR
+            pParent->_pLeft = pSubLR;
+
+            if(pSubLR)
+                  pSubLR->_pParent = pParent;
+
+            pSubL->_pRight = pParent;
+            pNode ppParent = pSubL->_pParent;
+            pParent->_pParent = pSubL;
+
+            if(pParent == _pRoot)
+            {
+                  pSubL->_pRight = pParent;
+                  pSubL->_pParent = NULL;
+            }
+
+            //判断pParent为左子树还是右子树
+            else if(ppParent->_pLeft == pParent)
+            {
+                  ppParent->_pLeft = pSubL;
+            }
+
+            else
+            {
+                  ppParent->_pRight = pSubL;
+            }
+            pSubL->_pParent = ppParent;
+
+            //更新平衡因子
+            pParent->_bf = pSubL->_bf = 0;
+      }
+
+      //左右双旋---插入较高左子树的右侧(先左旋后右旋)
+      void RotateLR(pNode pParent)
+      {
+            pNode pSubL = pParent->_pLeft;
+            pNode pSubLR = pSubL->_pRight;
+
+            RotateL(pParent);
+            RotateR(pParent->_pLeft);    //？？？？？？、
+
+            //更新平衡因子
+            int bf = pSubLR->_bf;
+            if(bf == 1)
+                  pSubL->_bf = -1;
+            else if(bf == -1)
+                  pSubL->_bf = 1;
+      }
+
+      //右左双旋---插入较高右子树的左侧(先右旋后左旋)
+      void RotateRL(pNode pParent)
+      {
+            pNode pSubR = pParent->_pRight;
+            pNode pSubRL = pSubR->_pLeft;
+
+            RotateR(pParent);
+            RotateL(pParent);    //？？？？？？、
+
+            //更新平衡因子
+            int bf = pSubRL->_bf;
+            if(bf == 1)
+                  pSubR->_bf = -1;
+            else if(bf == -1)
+                  pSubR->_bf = 1;
+      }
+
+      void _Inorder(pNode pRoot)
+      {
+            if(NULL == pRoot)
+                  return;
+            _Inorder(pRoot->_pLeft);
+            _Inorder(pRoot->_pRight);
+      }
+
+      bool _IsBalance(pNode pRoot)
+      {
+            //树为空
+            if(NULL == pRoot)
+                  return true;
+
+            //树存在
+            int leftHeight = _Height(pRoot->_pLeft);
+            int rightHeight = _Height(pRoot->_pRight);
+            
+            if(abs(rightHeight - leftHeight) >= 2)
+                  return false;
+            return _IsBalance(pRoot->_pLeft)&&_IsBalance(pRoot->_pRight);
+      }
+      
+      int _Height(pNode pRoot)
+      {
+            if(NULL == pRoot)
+                  return 0;
+            int leftHeight = _Height(pRoot->_pLeft);
+            int rightHeight = _Height(pRoot->_pRight);
+            return ((leftHeight>rightHeight?leftHeight:rightHeight)+1);
+      }
+
+
+protected:
+      pNode _pRoot;
+};
+
+void AVLTreeTest()
+{
+      int array[] = {16, 3, 7, 11, 9, 26, 18, 14, 15};
+      AVLTree<int, int> A;
+      for(int i = 0; i<sizeof(array)/sizeof(array[0]); ++i)
+      {
+            A.Insert(array[i], i);
+      }
+      A.Inorder();
+}
+
+
+
+int main()
+{
+      void AVLTreeTest();
+      return 0;
+}
