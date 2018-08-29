@@ -1,0 +1,75 @@
+#include <iostream>#include <string>using namespace std;
+
+class String
+{
+public:
+//构造函数
+String(char *str = "")
+:_str(str)
+{}
+//修改后的构造函数
+String(char *str = "")//构造函数
+{
+if (NULL == str)
+{
+_str = new char[1];//为了和delete[]配合使用
+*_str = '\0';
+}
+else
+{
+_str = new char[strlen(str) + 1];
+strcpy(_str, str);
+}
+}
+
+//拷贝构造函数（浅拷贝）程序会崩溃（同一空间被释放多次）
+String(const *String &s)
+:_str(s._str)
+{}
+
+//拷贝构造函数（深拷贝）重新开辟空间
+String(const *String &s)
+:_str(new char[strlen(s._str)+1])
+{
+strcpy(_str, s._str);
+}
+
+//赋值运算符重载
+//方法一 (先释放，再开辟空间，但空间开辟可能会失败，不仅没有将s1赋值给s2，还易破坏原来的s2)
+String& operator = (const String& s)
+{
+if(this != &s)
+{
+delete[] _str;
+_str = new char[strlen(s._str)+1];
+strcpy(_str, s._str);
+}
+return *this;
+}
+
+//方法二(先开辟空间，赋值，再释放，不用担心破坏原来的对象)
+String& operator = (const String& s)
+{
+if(this != NULL)
+{
+char* temp = new char[strlen(s._str)+1];
+strcpy(temp, s.-str);
+delete[] _str;
+_str = temp;
+}
+return *this;
+}
+
+//析构函数
+~String()
+{
+if(NULL != _str)
+{
+delete[] _str;
+}
+}
+
+private:
+//数据成员
+char *_str;
+};
