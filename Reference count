@@ -1,0 +1,38 @@
+#include <iostream>using namespace std;
+class String
+{
+public:
+String(const char* str = "")
+{
+if(NULL = str)
+{
+_str = new char[1];
+*str = '\0';
+}
+else
+{
+_str = new char[strlen(str)+1];
+strcpy(_str, str);
+}
+_count = 1;
+}
+String(String &s)
+:_str(s._str)
+,_count(++(s._count))
+{
+strcpy(_str, s._str);
+}
+
+~String()
+{
+//_count是每个对象的，减去一个共享一块空间的其中一个对象的成员
+//并不会改变其他对象的成员变量_count的值
+if((--_count == 0)&&(NULL != _str))
+{
+cout<<this<<endl;
+delete[] _str;
+}
+}
+private:
+char *_str;
+};
